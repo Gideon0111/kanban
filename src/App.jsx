@@ -1,13 +1,13 @@
 import './App.css'
-import { TaskCard } from './components/TaskCard'
+import Board from './components/Board'  
 
-function App() {
-  
+
+function App() { 
   return (
     <>
-    <TaskCard task={{ title: "Sample Task", description: "This is a sample task.", status: "To Do" }} />
+    <h1>My Kanban Board</h1>
+    <Board />
     </>
   )
 }
-
 export default App
