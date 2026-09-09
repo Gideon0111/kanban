@@ -126,3 +126,5 @@ export const mockTasks = [
     dueDate: '2026-10-05',
   },
 ];
+
+export default mockTasks
