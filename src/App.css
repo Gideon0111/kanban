@@ -1,45 +1,510 @@
+/* ========================================
+   GLOBAL RESET
+======================================== */
+
 * {
   box-sizing: border-box;
 }
+
+:root {
+  --bg-primary: #f4f7ff;
+  --bg-secondary: #eaf0ff;
+  --bg-tertiary: #dfe8ff;
+
+  --surface-primary: rgba(255, 255, 255, 0.72);
+  --surface-secondary: rgba(255, 255, 255, 0.52);
+
+  --text-primary: #17213d;
+  --text-secondary: #596580;
+  --text-muted: #7d89a5;
+
+  --border-color: rgba(66, 114, 255, 0.16);
+  --border-strong: rgba(66, 114, 255, 0.28);
+
+  --accent-primary: #4272ff;
+  --accent-hover: #315de0;
+
+  --success-color: #16a36a;
+  --warning-color: #d88916;
+  --danger-color: #e05252;
+
+  --shadow-soft: 0 12px 35px rgba(66, 114, 255, 0.08);
+  --shadow-card: 0 8px 24px rgba(38, 67, 130, 0.08);
+}
+
 body {
-    background: #141b23;
   margin: 0;
-  font-family: Arial, sans-serif;
+  min-width: 320px;
 }
-main {
-  padding: 2rem;
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
-.board {
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(99, 102, 241, 0.3);
+  outline-offset: 2px;
+}
+
+/* ========================================
+   APP THEME VARIABLES
+======================================== */
+
+/* LIGHT THEME */
+
+.app.light {
+  --bg-primary: #f7f8fc;
+  --bg-secondary: #eef2ff;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-input: #f9fafb;
+
+  --text-primary: #172033;
+  --text-secondary: #667085;
+  --text-muted: #98a2b3;
+
+  --border-color: #e4e7ec;
+  --border-strong: #cfd4dc;
+
+  --accent-primary: #6366f1;
+  --accent-primary-hover: #4f46e5;
+  --accent-soft: #eef2ff;
+
+  --success: #16a34a;
+  --success-soft: #dcfce7;
+
+  --warning: #ea580c;
+  --warning-soft: #ffedd5;
+
+  --info: #0284c7;
+  --info-soft: #e0f2fe;
+
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
+
+  --shadow-card: 0 8px 24px rgba(30, 41, 59, 0.06);
+  --shadow-hover: 0 12px 28px rgba(30, 41, 59, 0.1);
+}
+
+/* DARK THEME */
+
+.app.dark {
+  --bg-primary: #0d1224;
+  --bg-secondary: #151d35;
+  --bg-tertiary: #202b49;
+
+  --surface-primary: rgba(25, 35, 62, 0.9);
+  --surface-secondary: rgba(32, 43, 73, 0.86);
+
+  --text-primary: #f5f7ff;
+  --text-secondary: #b6c0d8;
+  --text-muted: #7e8aa8;
+
+  --border-color: rgba(148, 163, 255, 0.16);
+  --border-strong: rgba(148, 163, 255, 0.3);
+
+  --accent-primary: #8ca5ff;
+  --accent-hover: #a7b8ff;
+
+  --success-color: #45d39a;
+  --warning-color: #ffc45c;
+  --danger-color: #ff7777;
+
+  --shadow-soft: 0 12px 35px rgba(0, 0, 0, 0.24);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.22);
+
+    background:
+    radial-gradient(
+      circle at 5% 0%,
+      rgba(66, 114, 255, 0.12),
+      transparent 26rem
+    ),
+    radial-gradient(
+      circle at 95% 10%,
+      rgba(255, 126, 66, 0.08),
+      transparent 24rem
+    ),
+    var(--bg-primary);
+}
+
+/* ========================================
+   MAIN APP CONTAINER
+======================================== */
+
+.app {
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+
+  color: var(--text-primary);
+
+  background:
+    radial-gradient(
+      circle at 5% 0%,
+      rgba(255, 179, 67, 0.2),
+      transparent 25rem
+    ),
+    radial-gradient(
+      circle at 95% 10%,
+      rgba(66, 234, 255, 0.16),
+      transparent 24rem
+    ),
+    radial-gradient(
+      circle at 50% 100%,
+      rgba(66, 114, 255, 0.12),
+      transparent 30rem
+    ),
+    var(--bg-primary);
+
+  transition:
+    background 0.35s ease,
+    color 0.35s ease;
+}
+
+.app-header {
+  width: min(100%, 1100px);
+  margin-inline: auto;
+  margin-bottom: 1.5rem;
+}
+
+/* ========================================
+   THEME TOGGLE
+======================================== */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  margin-bottom: 0;
+  padding: 0.7rem 1rem;
+
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+
+  background: var(--bg-card);
+  color: var(--text-primary);
+
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   TASK FORM
+======================================== */
+
+.task-form {
   display: flex;
-  gap: 1.5rem;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+
+  width: min(100%, 1100px);
+  margin-inline: auto;
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+
+   background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.78),
+      rgba(234, 240, 255, 0.72)
+    );
+
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+    box-shadow: 0.3s ease;
 }
+
+.app.dark .task-form {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(29, 41, 73, 0.95),
+      rgba(21, 29, 53, 0.95)
+    );
+}
+
+.task-form input,
+.task-form textarea,
+.task-form select,
+form input,
+form textarea,
+form select {
+  min-height: 42px;
+  padding: 0.7rem 0.85rem;
+
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+
+  background: var(--bg-input);
+  color: var(--text-primary);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.3s ease;
+}
+
+.task-form input:focus,
+.task-form textarea:focus,
+.task-form select:focus,
+form input:focus,
+form textarea:focus,
+form select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  outline: none;
+}
+
+.task-form input::placeholder,
+.task-form textarea::placeholder,
+form input::placeholder,
+form textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* If the form uses a regular form selector */
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+/* ========================================
+   GENERAL BUTTONS
+======================================== */
+
+button {
+  border: 0;
+  border-radius: 9px;
+  padding: 0.65rem 0.9rem;
+
+  font-weight: 600;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* Main form submit button */
+
+.task-form button[type="submit"],
+form button[type="submit"] {
+  background: var(--accent-primary);
+  color: #ffffff;
+}
+
+.task-form button[type="submit"]:hover,
+form button[type="submit"]:hover {
+  background: var(--accent-primary-hover);
+}
+
+/* ========================================
+   BOARD
+======================================== */
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+
+  width: min(100%, 1100px);
+  min-height: 480px;
+  margin-inline: auto;
+  padding: 1.25rem;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.62),
+      rgba(223, 232, 255, 0.58)
+    );
+
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease;
+}
+.app.dark .board {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(21, 29, 53, 0.96),
+      rgba(32, 43, 73, 0.9)
+    );
+}
+
+/* ========================================
+   COLUMNS
+======================================== */
 .column {
-  width: 300px;
-  min-height: 400px;
+  min-width: 0;
   padding: 1rem;
-  border-radius: 8px;
-  background: #f4f4f4;
+
+  background: var(--surface-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.3s ease;
 }
+
+.column:hover {
+  transform: translateY(-3px);
+}
+
 .column h2 {
   margin-top: 0;
+  margin-bottom: 1rem;
+
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 700;
 }
+/* Optional status-based column accents */
+.column:nth-child(1) {
+  border-top-color: var(--info);
+}
+
+.column:nth-child(2) {
+  border-top-color: var(--warning);
+}
+
+.column:nth-child(3) {
+  border-top-color: var(--success);
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  margin-bottom: 1rem;
+  padding-bottom: 0.85rem;
+
+  border-bottom: 2px solid var(--column-accent);
+}
+
+.column-title {
+  color: var(--text-primary);
+}
+
+.column-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 28px;
+  height: 28px;
+  padding: 0 0.5rem;
+
+  color: var(--column-accent);
+  background: var(--column-accent-soft);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* ========================================
+   TASK LIST
+======================================== */
+
 .task-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.85rem;
 }
+
+/* ========================================
+   TASK CARD
+======================================== */
+
 .task-card {
   padding: 1rem;
-  border-radius: 8px;
-  background: white;
+
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 5px 16px rgba(38, 67, 130, 0.05);
+
+  transition:
+    background-color 0.3s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
+
+.task-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 22px rgba(38, 67, 130, 0.1);
+  border-color: var(--border-strong);
+}
+
 .task-card h3 {
   margin-top: 0;
+  margin-bottom: 0.5rem;
+
+  color: var(--text-primary);
+  font-size: 1rem;
 }
+
 .task-card p {
   margin-bottom: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
+
+/* ========================================
+   TASK ACTIONS
+======================================== */
 
 .task-actions {
   display: flex;
@@ -49,15 +514,162 @@ main {
 }
 
 .task-actions button {
-  cursor: pointer;
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+  border: 1px solid transparent;
 }
 
-form {
+.task-actions button:hover {
+  border-color: var(--accent-primary);
+}
+
+/* Delete button */
+
+.task-actions button.delete,
+.task-card button.delete {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* ========================================
+   STATUS BADGES
+======================================== */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+
+  margin-bottom: 0.75rem;
+  padding: 0.3rem 0.6rem;
+
+  border-radius: 999px;
+
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status-todo {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.status-progress {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.status-done {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.show-more-button {
   display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 2rem;
+
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+
+  color: var(--accent-primary);
+  background: rgba(66, 114, 255, 0.08);
+
+  border: 1px dashed rgba(66, 114, 255, 0.35);
+  border-radius: 12px;
+
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
 }
 
-form input {
-  padding: 0.5rem;
+.show-more-button span {
+  opacity: 0.7;
+  font-size: 0.75rem;
 }
+
+.show-more-button:hover {
+  background: rgba(66, 114, 255, 0.15);
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+}
+
+.show-more-button:active {
+  transform: translateY(0);
+}
+
+
+/* ========================================
+   RESPONSIVE DESIGN
+======================================== */
+@media (max-width: 900px) {
+  .board {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .column {
+    flex: 0 0 290px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app {
+    padding: 1rem;
+  }
+
+  .board {
+    padding: 0.75rem;
+    gap: 1rem;
+  }
+
+  .column {
+    flex-basis: 280px;
+  }
+
+  .task-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .task-form input,
+  .task-form textarea,
+  .task-form select,
+  .task-form button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .app {
+    padding: 1rem;
+  }
+
+  .task-form {
+    padding: 1rem;
+    border-radius: 18px;
+  }
+
+  .board {
+    padding: 0.75rem;
+    border-radius: 18px;
+  }
+
+  .column {
+    flex-basis: 270px;
+  }
+}
+
+
+
+

@@ -11,9 +11,37 @@ function useLocalTasks() {
     localStorage.setItem('kanban-tasks', JSON.stringify(tasks))
   }, [tasks])
 
+
   const addTask = (task) => {
-    setTasks(prevTasks => [...prevTasks, {...task, id: Date.now(),},])
+    setTasks((prevTasks) => {
+      const highestId = prevTasks.reduce(
+        (maxId, currentTask) =>
+          Math.max(maxId, Number(currentTask.id) || 0),
+        0,
+      )
+
+      const nextId = highestId + 1
+
+      return [
+        ...prevTasks,
+        {
+          ...task,
+          id: nextId,
+        },
+      ]
+    })
   }
+
+
+
+
+
+
+  // const addTask = (task) => {
+  //   setTasks(prevTasks => [...prevTasks, {...task, id: Date.now(),},])
+  // }
+
+
   const deleteTask = (taskId) => { 
     setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId))
   }

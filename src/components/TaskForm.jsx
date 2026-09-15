@@ -23,6 +23,7 @@ function TaskForm() {
   }
 
   return (
+    <div className="task-form">
     <form onSubmit={handleSubmit}>
       <input
         type="text"
@@ -42,6 +43,7 @@ function TaskForm() {
         Add Task
       </button>
     </form>
+    </div>
   )
 }
 

@@ -1,17 +1,31 @@
+import { useTheme } from './context/ThemeContext'
+import { TaskProvider } from './context/TaskContext'
+import {ThemeProvider} from './context/ThemeContext'
+
 import './App.css'
 import Board from './components/Board'  
 import TaskForm from './components/TaskForm'
-import { TaskProvider } from './context/TaskContext'
+import ThemeToggle from './components/ThemeToggle'
 
+function AppContent() {
+  const { theme } = useTheme()
+  return (
+    <div className={`app ${theme}`}>
+      <div className="app-header">
+        <ThemeToggle />
+      </div>
+      <TaskForm />
+      <Board />
+    </div>
+  )
+}
 
 function App() { 
   return (
     <TaskProvider>
-      <main>
-        <h1>My Kanban Board</h1>
-        <TaskForm />
-        <Board />
-      </main>
+      <ThemeProvider> 
+      <AppContent />
+      </ThemeProvider>
     </TaskProvider>
   )
 }
