@@ -1,0 +1,23 @@
+{
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Learn React",
+      "description": "Study React fundamentals",
+      "status": "todo"
+    },
+    {
+      "id": "2",
+      "title": "Build Kanban UI",
+      "description": "Create the board layout",
+      "status": "in-progress"
+    },
+    {
+      "id": "3",
+      "title": "Complete React Course",
+      "description": "Finish the React course",
+      "status": "done"
+    }
+  ]
+}
+
