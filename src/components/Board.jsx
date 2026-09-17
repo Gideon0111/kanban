@@ -2,19 +2,22 @@ import Column from './Column'
 import { useTasks } from '../context/TaskContext'
 
 function Board() {
-  const { tasks } = useTasks()
+  const { tasksByStatus, loading, error } = useTasks()
 
-  const todoTasks = tasks.filter((task) => task.status === 'todo')
-  const inProgressTasks = tasks.filter((task) => task.status === 'in-progress')
-  const doneTasks = tasks.filter((task) => task.status === 'done')
+  if (loading) {
+    return <p>Loading tasks...</p>
+  }
+
+  if (error) {
+    return <p>Unable to load tasks: {error}</p>
+  }  
 
   return (
     <main className="board">
-      <Column title="Todo" tasks={todoTasks} />
-      <Column title="In Progress" tasks={inProgressTasks} />
-      <Column title="Done" tasks={doneTasks} />
+      <Column title="Todo" tasks={tasksByStatus.todo} />
+      <Column title="In Progress" tasks={tasksByStatus['in-progress']} />
+      <Column title="Done" tasks={tasksByStatus.done} />
     </main>
   )
-}
-
+  }
 export default Board

@@ -1,10 +1,10 @@
 import { createContext, useContext } from 'react'
-import useLocalTasks from '../hooks/useLocalTasks'
+import useTaskData from '../hooks/useTaskData'
 
 const TaskContext = createContext(null)
 
 export function TaskProvider({ children }) {
-  const taskData = useLocalTasks()
+  const taskData = useTaskData()
 
   return (
     <TaskContext.Provider value={taskData}>

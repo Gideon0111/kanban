@@ -10,14 +10,26 @@
       "id": "2",
       "title": "Build Kanban UI",
       "description": "Create the board layout",
-      "status": "in-progress"
+      "status": "done"
     },
     {
       "id": "3",
       "title": "Complete React Course",
       "description": "Finish the React course",
-      "status": "done"
+      "status": "todo"
+    },
+    {
+      "title": "Test",
+      "description": "Testing the API phase",
+      "status": "in-progress",
+      "id": "x2zHJ0_ruVY"
+    },
+    {
+      "title": "Test 2 ",
+      "description": "Update the TaskData file",
+      "status": "done",
+      "id": "HCmetAEXN9E"
     }
-  ]
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }
-

@@ -1,17 +1,21 @@
 import { useTasks } from '../context/TaskContext'
 
 function TaskCard({ task }) {
-  const { moveTask, deleteTask } = useTasks()
+  const {
+    moveTask,
+    deleteTask,
+    actionLoading,
+  } = useTasks()
 
   return (
     <article className="task-card">
       <h3>{task.title}</h3>
-
       <p>{task.description}</p>
 
       <div className="task-actions">
         {task.status !== 'todo' && (
           <button
+            disabled={actionLoading}
             onClick={() => moveTask(task.id, 'todo')}
           >
             Move to Todo
@@ -20,6 +24,7 @@ function TaskCard({ task }) {
 
         {task.status !== 'in-progress' && (
           <button
+            disabled={actionLoading}
             onClick={() => moveTask(task.id, 'in-progress')}
           >
             Move to In Progress
@@ -28,6 +33,7 @@ function TaskCard({ task }) {
 
         {task.status !== 'done' && (
           <button
+            disabled={actionLoading}
             onClick={() => moveTask(task.id, 'done')}
           >
             Move to Done
@@ -35,9 +41,10 @@ function TaskCard({ task }) {
         )}
 
         <button
+          disabled={actionLoading}
           onClick={() => deleteTask(task.id)}
         >
-          Delete
+          {actionLoading ? 'Processing...' : 'Delete'}
         </button>
       </div>
     </article>
