@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import {
   getTasks,
   createTask,
@@ -9,77 +10,89 @@ import {
 function useTaskData() {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
-  const [actionLoading, setActionLoading] = useState(false)
+  const [isAdding, setIsAdding] = useState(false)
+  const [pendingTaskIds, setPendingTaskIds] = useState(() => new Set())
   const [error, setError] = useState(null)
   const [actionError, setActionError] = useState(null)
 
-  useEffect(() => {
-    async function loadTasks() {
-      try {
-        setError(null)
-        const data = await getTasks()
-        setTasks(data)
-      } catch (error) {
-        setError(error.message)
-      } finally {
-        setLoading(false)
-      }
-    }
+  const markPending = (taskId, isPending) => {
+    setPendingTaskIds((prev) => {
+      const next = new Set(prev)
+      isPending ? next.add(taskId) : next.delete(taskId)
+      return next
+    })
+  }
 
-    loadTasks()
+  const loadTasks = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await getTasks()
+      setTasks(data)
+    } catch (error) {
+      setError(error.message)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  const addTask = async (task) => {
-    setActionLoading(true)
+  useEffect(() => {
+    loadTasks()
+  }, [loadTasks])
+
+  const addTask = useCallback(async (task) => {
+    setIsAdding(true)
     setActionError(null)
     try {
       const newTask = await createTask(task)
       setTasks((prevTasks) => [...prevTasks, newTask])
+      toast.success('Task added')
+      return newTask
     } catch (error) {
       setActionError(error.message)
+      toast.error(`Couldn't add task: ${error.message}`)
       throw error
     } finally {
-      setActionLoading(false)
+      setIsAdding(false)
     }
-  }
+  }, [])
 
-  const moveTask = async (taskId, newStatus) => {
-    setActionLoading(true)
+  const moveTask = useCallback(async (taskId, newStatus) => {
+    markPending(taskId, true)
     setActionError(null)
-
     const previousTasks = tasks
-
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
         task.id === taskId ? { ...task, status: newStatus } : task
       )
     )
-
     try {
       await updateTask(taskId, { status: newStatus })
+      toast.success('Task moved')
     } catch (error) {
       setTasks(previousTasks)
       setActionError(error.message)
+      toast.error(`Couldn't move task: ${error.message}`)
     } finally {
-      setActionLoading(false)
+      markPending(taskId, false)
     }
-  }
+  }, [tasks])
 
-  const deleteTask = async (taskId) => {
-    setActionLoading(true)
+  const deleteTask = useCallback(async (taskId) => {
+    markPending(taskId, true)
     setActionError(null)
     try {
       await deleteTaskRequest(taskId)
       setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId))
+      toast.success('Task deleted')
     } catch (error) {
       setActionError(error.message)
+      toast.error(`Couldn't delete task: ${error.message}`)
+      markPending(taskId, false)
       throw error
-    } finally {
-      setActionLoading(false)
     }
-  }
+  }, [])
 
-  // Derived state: grouped once here, not re-derived in every consumer
   const tasksByStatus = useMemo(() => {
     return {
       todo: tasks.filter((task) => task.status === 'todo'),
@@ -92,12 +105,14 @@ function useTaskData() {
     tasks,
     tasksByStatus,
     loading,
-    actionLoading,
+    isAdding,
+    pendingTaskIds,
     error,
     actionError,
     addTask,
     moveTask,
     deleteTask,
+    retry: loadTasks,
   }
 }
 

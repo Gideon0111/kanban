@@ -24,7 +24,6 @@ export async function createTask(task) {
   return response.json()
 }
 
-
 export async function updateTask(taskId, updates) {
   const response = await fetch(`${API_URL}/${taskId}`, {
     method: 'PATCH',

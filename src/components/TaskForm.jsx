@@ -2,28 +2,35 @@ import { useState } from 'react'
 import { useTasks } from '../context/TaskContext'
 
 function TaskForm() {
-  const { addTask } = useTasks()
+  const {
+    addTask,
+    actionLoading,
+    actionError,
+  } = useTasks()
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (!title.trim()) return
 
-    addTask({
-      title,
-      description,
-      status: 'todo',
-    })
+    try {
+      await addTask({
+        title,
+        description,
+        status: 'todo',
+      })
 
-    setTitle('')
-    setDescription('')
+      setTitle('')
+      setDescription('')
+    } catch {
+      // The hook already stores the error.
+    }
   }
 
   return (
-    <div className="task-form">
     <form onSubmit={handleSubmit}>
       <input
         type="text"
@@ -39,11 +46,12 @@ function TaskForm() {
         onChange={event => setDescription(event.target.value)}
       />
 
-      <button type="submit">
-        Add Task
+      <button type="submit" disabled={actionLoading}>
+        {actionLoading ? 'Adding...' : 'Add Task'}
       </button>
+
+      {actionError && <p>{actionError}</p>}
     </form>
-    </div>
   )
 }
 
