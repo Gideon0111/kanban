@@ -6,32 +6,6 @@
   box-sizing: border-box;
 }
 
-:root {
-  --bg-primary: #f4f7ff;
-  --bg-secondary: #eaf0ff;
-  --bg-tertiary: #dfe8ff;
-
-  --surface-primary: rgba(255, 255, 255, 0.72);
-  --surface-secondary: rgba(255, 255, 255, 0.52);
-
-  --text-primary: #17213d;
-  --text-secondary: #596580;
-  --text-muted: #7d89a5;
-
-  --border-color: rgba(66, 114, 255, 0.16);
-  --border-strong: rgba(66, 114, 255, 0.28);
-
-  --accent-primary: #4272ff;
-  --accent-hover: #315de0;
-
-  --success-color: #16a36a;
-  --warning-color: #d88916;
-  --danger-color: #e05252;
-
-  --shadow-soft: 0 12px 35px rgba(66, 114, 255, 0.08);
-  --shadow-card: 0 8px 24px rgba(38, 67, 130, 0.08);
-}
-
 body {
   margin: 0;
   min-width: 320px;
@@ -57,10 +31,19 @@ select:focus-visible {
 }
 
 /* ========================================
-   APP THEME VARIABLES
+   THEME VARIABLES
+   Single naming convention, fully defined in
+   every theme so nothing silently falls back
+   to "undefined" when the theme switches.
 ======================================== */
 
-/* LIGHT THEME */
+:root {
+  --shadow-soft: 0 12px 35px rgba(66, 114, 255, 0.08);
+  --shadow-card: 0 8px 24px rgba(38, 67, 130, 0.08);
+  --shadow-hover: 0 12px 28px rgba(30, 41, 59, 0.1);
+}
+
+/* LIGHT THEME (also the default look) */
 
 .app.light {
   --bg-primary: #f7f8fc;
@@ -68,6 +51,9 @@ select:focus-visible {
   --bg-card: #ffffff;
   --bg-elevated: #ffffff;
   --bg-input: #f9fafb;
+
+  --surface-primary: rgba(255, 255, 255, 0.72);
+  --surface-secondary: rgba(255, 255, 255, 0.52);
 
   --text-primary: #172033;
   --text-secondary: #667085;
@@ -96,12 +82,15 @@ select:focus-visible {
   --shadow-hover: 0 12px 28px rgba(30, 41, 59, 0.1);
 }
 
-/* DARK THEME */
+/* DARK THEME — same variable names, dark-tuned values.
+   Every variable .app.light defines is redefined here too. */
 
 .app.dark {
   --bg-primary: #0d1224;
   --bg-secondary: #151d35;
-  --bg-tertiary: #202b49;
+  --bg-card: #151d35;
+  --bg-elevated: #202b49;
+  --bg-input: #151d35;
 
   --surface-primary: rgba(25, 35, 62, 0.9);
   --surface-secondary: rgba(32, 43, 73, 0.86);
@@ -114,16 +103,26 @@ select:focus-visible {
   --border-strong: rgba(148, 163, 255, 0.3);
 
   --accent-primary: #8ca5ff;
-  --accent-hover: #a7b8ff;
+  --accent-primary-hover: #a7b8ff;
+  --accent-soft: rgba(140, 165, 255, 0.16);
 
-  --success-color: #45d39a;
-  --warning-color: #ffc45c;
-  --danger-color: #ff7777;
+  --success: #45d39a;
+  --success-soft: rgba(69, 211, 154, 0.16);
+
+  --warning: #ffc45c;
+  --warning-soft: rgba(255, 196, 92, 0.16);
+
+  --info: #66c7ff;
+  --info-soft: rgba(102, 199, 255, 0.16);
+
+  --danger: #ff7777;
+  --danger-soft: rgba(255, 119, 119, 0.16);
 
   --shadow-soft: 0 12px 35px rgba(0, 0, 0, 0.24);
   --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.22);
+  --shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.3);
 
-    background:
+  background:
     radial-gradient(
       circle at 5% 0%,
       rgba(66, 114, 255, 0.12),
@@ -179,6 +178,7 @@ select:focus-visible {
 /* ========================================
    THEME TOGGLE
 ======================================== */
+
 .theme-toggle {
   display: inline-flex;
   align-items: center;
@@ -218,7 +218,7 @@ select:focus-visible {
   margin-bottom: 2rem;
   padding: 1.25rem;
 
-   background:
+  background:
     linear-gradient(
       135deg,
       rgba(255, 255, 255, 0.78),
@@ -233,8 +233,8 @@ select:focus-visible {
 
   transition:
     background-color 0.3s ease,
-    border-color 0.3s ease;
-    box-shadow: 0.3s ease;
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .app.dark .task-form {
@@ -248,10 +248,7 @@ select:focus-visible {
 
 .task-form input,
 .task-form textarea,
-.task-form select,
-form input,
-form textarea,
-form select {
+.task-form select {
   min-height: 42px;
   padding: 0.7rem 0.85rem;
 
@@ -269,29 +266,15 @@ form select {
 
 .task-form input:focus,
 .task-form textarea:focus,
-.task-form select:focus,
-form input:focus,
-form textarea:focus,
-form select:focus {
+.task-form select:focus {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
   outline: none;
 }
 
 .task-form input::placeholder,
-.task-form textarea::placeholder,
-form input::placeholder,
-form textarea::placeholder {
+.task-form textarea::placeholder {
   color: var(--text-muted);
-}
-
-/* If the form uses a regular form selector */
-
-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
 }
 
 /* ========================================
@@ -328,20 +311,19 @@ button:disabled {
 
 /* Main form submit button */
 
-.task-form button[type="submit"],
-form button[type="submit"] {
+.task-form button[type="submit"] {
   background: var(--accent-primary);
   color: #ffffff;
 }
 
-.task-form button[type="submit"]:hover,
-form button[type="submit"]:hover {
+.task-form button[type="submit"]:hover {
   background: var(--accent-primary-hover);
 }
 
 /* ========================================
    BOARD
 ======================================== */
+
 .board {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -369,6 +351,7 @@ form button[type="submit"]:hover {
     background 0.3s ease,
     border-color 0.3s ease;
 }
+
 .app.dark .board {
   background:
     linear-gradient(
@@ -380,7 +363,11 @@ form button[type="submit"]:hover {
 
 /* ========================================
    COLUMNS
+   Each column defines --column-accent /
+   --column-accent-soft once; the header and
+   count badge inherit them automatically.
 ======================================== */
+
 .column {
   min-width: 0;
   padding: 1rem;
@@ -400,6 +387,24 @@ form button[type="submit"]:hover {
   transform: translateY(-3px);
 }
 
+.column:nth-child(1) {
+  --column-accent: var(--info);
+  --column-accent-soft: var(--info-soft);
+  border-top-color: var(--column-accent);
+}
+
+.column:nth-child(2) {
+  --column-accent: var(--warning);
+  --column-accent-soft: var(--warning-soft);
+  border-top-color: var(--column-accent);
+}
+
+.column:nth-child(3) {
+  --column-accent: var(--success);
+  --column-accent-soft: var(--success-soft);
+  border-top-color: var(--column-accent);
+}
+
 .column h2 {
   margin-top: 0;
   margin-bottom: 1rem;
@@ -407,18 +412,6 @@ form button[type="submit"]:hover {
   color: var(--text-primary);
   font-size: 1.1rem;
   font-weight: 700;
-}
-/* Optional status-based column accents */
-.column:nth-child(1) {
-  border-top-color: var(--info);
-}
-
-.column:nth-child(2) {
-  border-top-color: var(--warning);
-}
-
-.column:nth-child(3) {
-  border-top-color: var(--success);
 }
 
 .column-header {
@@ -523,8 +516,6 @@ form button[type="submit"]:hover {
   border-color: var(--accent-primary);
 }
 
-/* Delete button */
-
 .task-actions button.delete,
 .task-card button.delete {
   background: var(--danger-soft);
@@ -562,6 +553,10 @@ form button[type="submit"]:hover {
   background: var(--success-soft);
   color: var(--success);
 }
+
+/* ========================================
+   SHOW MORE BUTTON
+======================================== */
 
 .show-more-button {
   display: flex;
@@ -605,10 +600,10 @@ form button[type="submit"]:hover {
   transform: translateY(0);
 }
 
-
 /* ========================================
    RESPONSIVE DESIGN
 ======================================== */
+
 @media (max-width: 900px) {
   .board {
     display: flex;
@@ -669,7 +664,3 @@ form button[type="submit"]:hover {
     flex-basis: 270px;
   }
 }
-
-
-
-

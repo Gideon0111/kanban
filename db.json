@@ -4,13 +4,13 @@
       "id": "1",
       "title": "Learn React",
       "description": "Study React fundamentals",
-      "status": "done"
+      "status": "in-progress"
     },
     {
       "id": "2",
       "title": "Build Kanban UI",
       "description": "Create the board layout",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "3",
@@ -21,20 +21,32 @@
     {
       "title": "Test 2 ",
       "description": "Update the TaskData file",
-      "status": "in-progress",
-      "id": "HCmetAEXN9E"
-    },
-    {
-      "title": "Test Button-2",
-      "description": "Test Test",
       "status": "done",
-      "id": "fpI-pYZejks"
+      "id": "HCmetAEXN9E"
     },
     {
       "title": "Test Button 3 ",
       "description": "Still Trying",
       "status": "todo",
       "id": "ZUlkGP_xx5c"
+    },
+    {
+      "title": "Test",
+      "description": "Testing Form",
+      "status": "todo",
+      "id": "gZbXUreFGkk"
+    },
+    {
+      "title": "Test ",
+      "description": "Testing 3G",
+      "status": "todo",
+      "id": "FXDMrVnMOqo"
+    },
+    {
+      "title": "Test",
+      "description": "Test Form",
+      "status": "in-progress",
+      "id": "f_EcOQtCd18"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
