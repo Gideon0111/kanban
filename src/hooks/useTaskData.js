@@ -45,9 +45,10 @@ function useTaskData() {
     setActionError(null)
     try {
       const newTask = await createTask(task)
-      setTasks((prevTasks) => [...prevTasks, newTask])
+      const taskWithMeta = { createdAt: new Date().toISOString(), ...newTask }
+      setTasks((prevTasks) => [...prevTasks, taskWithMeta])
       toast.success('Task added')
-      return newTask
+      return taskWithMeta
     } catch (error) {
       setActionError(error.message)
       toast.error(`Couldn't add task: ${error.message}`)
@@ -61,14 +62,31 @@ function useTaskData() {
     markPending(taskId, true)
     setActionError(null)
     const previousTasks = tasks
+    const task = tasks.find((t) => t.id === taskId)
+
+    const updates = { status: newStatus }
+    if (newStatus === 'done') {
+      updates.completedAt = new Date().toISOString()
+    }
+
     setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus } : task
-      )
+      prevTasks.map((t) => (t.id === taskId ? { ...t, ...updates } : t))
     )
+
     try {
-      await updateTask(taskId, { status: newStatus })
-      toast.success('Task moved')
+      await updateTask(taskId, updates)
+
+      if (newStatus === 'done' && task?.dueDate) {
+        const diffMs = new Date(updates.completedAt) - new Date(task.dueDate)
+        if (diffMs > 0) {
+          const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
+          toast.warning(`Task completed — ${diffDays}d overdue`)
+        } else {
+          toast.success('Task completed on time')
+        }
+      } else {
+        toast.success('Task moved')
+      }
     } catch (error) {
       setTasks(previousTasks)
       setActionError(error.message)
