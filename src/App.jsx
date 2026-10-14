@@ -1,25 +1,36 @@
+import { useState } from 'react'                                    
 import { ErrorBoundary } from 'react-error-boundary'
 import { Toaster } from 'sonner'
 
-import { useTheme } from './context/ThemeContext'
+import { ThemeProvider, useTheme } from './context/ThemeContext'    
 import { TaskProvider } from './context/TaskContext'
-import { ThemeProvider } from './context/ThemeContext'
 
 import './App.css'
 import Board from './components/Board'
 import TaskForm from './components/TaskForm'
 import ThemeToggle from './components/ThemeToggle'
 import ErrorFallback from './components/ErrorFallback'
+import ViewSwitcher from './components/ViewSwitcher'              
+import ArchiveView from './components/ArchiveView' 
 
 function AppContent() {
   const { theme } = useTheme()
-  return (
+  const [view, setView] = useState('board') 
+  
+   return (
     <div className={`app ${theme}`}>
       <div className="app-header">
+
+        <ViewSwitcher view={view} onChange={setView} />
         <ThemeToggle />
       </div>
-      <TaskForm />
-      <Board />
+
+      <div hidden={view !== 'board'}>
+        <TaskForm />
+        <Board />
+      </div>
+
+      {view === 'archive' && <ArchiveView />}
     </div>
   )
 }

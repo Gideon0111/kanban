@@ -1,23 +1,23 @@
-const PRIORITY_CONFIG = {
-  low: { marks: '▽', label: 'Low priority' },
-  high: { marks: '▲▲', label: 'High priority' },
-}
+import Tooltip from './Tooltip'
 
-// Medium renders nothing — it's the statistical default, and marking every card would make the flag wallpaper instead of a signal.
+const LEVELS = { low: 1, medium: 2, high: 3 }
+const LABELS = { low: 'Low priority', medium: 'Medium priority', high: 'High priority' }
 
-function PriorityFlag({ priority }) {
-  if (!priority || priority === 'medium') return null
-  const config = PRIORITY_CONFIG[priority]
-  if (!config) return null
+function PriorityFlag({ priority = 'medium' }) {
+  const level = LEVELS[priority] ?? 2
+  const label = LABELS[priority] ?? LABELS.medium
 
   return (
-    <span
-      className={`priority-flag priority-flag--${priority}`}
-      title={config.label}
-      aria-label={config.label}
-    >
-      {config.marks}
-    </span>
+    <Tooltip label={label}>
+      <span className="priority-meter" role="img" aria-label={label}>
+        {[1, 2, 3].map((n) => (
+          <span
+            key={n}
+            className={`priority-meter__segment ${n <= level ? 'priority-meter__segment--filled' : ''}`}
+          />
+        ))}
+      </span>
+    </Tooltip>
   )
 }
 

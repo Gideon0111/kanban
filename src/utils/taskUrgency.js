@@ -10,15 +10,6 @@ function isSameCalendarDay(a, b) {
   )
 }
 
-export const TEMPORAL_STATE_CONFIG = {
-  normal:      { dotVar: '--success', emoji: '🟢', label: 'Normal' },
-  approaching: { dotVar: '--warning', emoji: '🟡', label: 'Approaching deadline' },
-  due:         { dotVar: '--due',     emoji: '🟠', label: 'Due' },
-  overdue:     { dotVar: '--danger',  emoji: '🔴', label: 'Overdue' },
-  completed:   { dotVar: '--text-muted', emoji: '✅', label: 'Completed' },
-  cancelled:   { dotVar: '--text-muted', emoji: '⚪', label: 'Cancelled' },
-}
-
 // status + cancelled flag take priority over date math — once a task is
 // done or cancelled, "is it overdue right now" is no longer a live question.
 export function getTemporalState(task) {
@@ -37,7 +28,7 @@ export function getTemporalState(task) {
   return 'normal'
 }
 
-function formatDuration(ms) {
+export function formatDuration(ms) {
   const totalMinutes = Math.floor(ms / 60000)
   const days = Math.floor(totalMinutes / (60 * 24))
   const hours = Math.floor((totalMinutes % (60 * 24)) / 60)
@@ -75,7 +66,6 @@ export function formatDueLabel(task) {
 }
 
 // Historical summary for a task already in the Done column.
-// Always neutral in tone/color — it's a record, not an alarm.
 export function getCompletionSummary(task) {
   if (task.status !== 'done' || !task.completedAt) return null
   if (!task.dueDate) return 'Completed'
@@ -86,6 +76,17 @@ export function getCompletionSummary(task) {
   return `Completed late — ${formatDuration(diffMs)} overdue`
 }
 
+export function getCancellationSummary(task) {
+  if (!task.cancelled) return null
+  if (!task.cancelledAt) return 'Cancelled'
+  return `Cancelled ${formatDate(task.cancelledAt)}`
+}
+
+export function getOverdueMs(task, at = new Date()) {
+  if (!task.dueDate) return 0
+  return Math.max(0, at - new Date(task.dueDate))
+}
+
 export function formatDate(isoDate) {
   if (!isoDate) return null
   return new Intl.DateTimeFormat(undefined, {
@@ -94,3 +95,4 @@ export function formatDate(isoDate) {
     year: 'numeric',
   }).format(new Date(isoDate))
 }
+

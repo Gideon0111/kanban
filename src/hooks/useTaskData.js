@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import {
   getTasks,
@@ -6,6 +6,9 @@ import {
   updateTask,
   deleteTaskRequest,
 } from '../api/tasksApi'
+import { formatDuration, getOverdueMs } from '../utils/taskUrgency'
+
+const STATUS_LABELS = { todo: 'Todo', 'in-progress': 'In Progress', done: 'Done' }
 
 function useTaskData() {
   const [tasks, setTasks] = useState([])
@@ -15,22 +18,27 @@ function useTaskData() {
   const [error, setError] = useState(null)
   const [actionError, setActionError] = useState(null)
 
-  const markPending = (taskId, isPending) => {
+  const tasksRef = useRef(tasks)
+  useEffect(() => {
+    tasksRef.current = tasks
+  }, [tasks])
+
+  const markPending = useCallback((taskId, isPending) => {
     setPendingTaskIds((prev) => {
       const next = new Set(prev)
-      isPending ? next.add(taskId) : next.delete(taskId)
+      if (isPending) next.add(taskId)
+      else next.delete(taskId)
       return next
     })
-  }
+  }, [])
 
   const loadTasks = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const data = await getTasks()
-      setTasks(data)
-    } catch (error) {
-      setError(error.message)
+      setTasks(await getTasks())
+    } catch (err) {
+      setError(err.message)
     } finally {
       setLoading(false)
     }
@@ -40,88 +48,214 @@ function useTaskData() {
     loadTasks()
   }, [loadTasks])
 
+  // Core of every optimistic update: apply locally, persist, roll back
+  // only this one task if the request fails.
+  const patchTask = useCallback(
+    async (taskId, updates, { onSuccess, errorMessage = "Couldn't update task" } = {}) => {
+      const previousTask = tasksRef.current.find((t) => t.id === taskId)
+      if (!previousTask) return false
+
+      markPending(taskId, true)
+      setActionError(null)
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...updates } : t)))
+
+      try {
+        await updateTask(taskId, updates)
+        onSuccess?.(previousTask)
+        return true
+      } catch (err) {
+        setTasks((prev) => prev.map((t) => (t.id === taskId ? previousTask : t)))
+        setActionError(err.message)
+        toast.error(`${errorMessage}: ${err.message}`)
+        return false
+      } finally {
+        markPending(taskId, false)
+      }
+    },
+    [markPending]
+  )
+
   const addTask = useCallback(async (task) => {
     setIsAdding(true)
     setActionError(null)
     try {
-      const newTask = await createTask(task)
-      const taskWithMeta = { createdAt: new Date().toISOString(), ...newTask }
-      setTasks((prevTasks) => [...prevTasks, taskWithMeta])
+      // createdAt is stamped BEFORE the request so it is persisted.
+      const newTask = await createTask({
+        cancelled: false,
+        archived: false,
+        completedAt: null,
+        ...task,
+        createdAt: new Date().toISOString(),
+      })
+      setTasks((prev) => [...prev, newTask])
       toast.success('Task added')
-      return taskWithMeta
-    } catch (error) {
-      setActionError(error.message)
-      toast.error(`Couldn't add task: ${error.message}`)
-      throw error
+      return newTask
+    } catch (err) {
+      setActionError(err.message)
+      toast.error(`Couldn't add task: ${err.message}`)
+      throw err
     } finally {
       setIsAdding(false)
     }
   }, [])
 
-  const moveTask = useCallback(async (taskId, newStatus) => {
-    markPending(taskId, true)
-    setActionError(null)
-    const previousTasks = tasks
-    const task = tasks.find((t) => t.id === taskId)
+  const moveTask = useCallback(
+    (taskId, newStatus) => {
+      const now = new Date()
+      const completedAt = newStatus === 'done' ? now.toISOString() : null
 
-    const updates = { status: newStatus }
-    if (newStatus === 'done') {
-      updates.completedAt = new Date().toISOString()
-    }
+      return patchTask(
+        taskId,
+        { status: newStatus, completedAt },
+        {
+          errorMessage: "Couldn't move task",
+          onSuccess: (previousTask) => {
+            const overdueMs = getOverdueMs(previousTask, now)
 
-    setTasks((prevTasks) =>
-      prevTasks.map((t) => (t.id === taskId ? { ...t, ...updates } : t))
-    )
+            if (newStatus === 'done') {
+              const message = !previousTask.dueDate
+                ? 'Task completed'
+                : overdueMs > 0
+                  ? `Task completed — ${formatDuration(overdueMs)} overdue`
+                  : 'Task completed on time'
 
-    try {
-      await updateTask(taskId, updates)
+              toast[overdueMs > 0 ? 'warning' : 'success'](message, {
+                duration: 8000,
+                action: {
+                  label: 'Undo',
+                  onClick: () =>
+                    patchTask(
+                      taskId,
+                      { status: previousTask.status, completedAt: null },
+                      { onSuccess: () => toast('Completion undone') }
+                    ),
+                },
+              })
+              return
+            }
 
-      if (newStatus === 'done' && task?.dueDate) {
-        const diffMs = new Date(updates.completedAt) - new Date(task.dueDate)
-        if (diffMs > 0) {
-          const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
-          toast.warning(`Task completed — ${diffDays}d overdue`)
-        } else {
-          toast.success('Task completed on time')
+            const label = `Moved to ${STATUS_LABELS[newStatus]}`
+            if (overdueMs > 0) toast.warning(`${label} — ${formatDuration(overdueMs)} overdue`)
+            else toast.success(label)
+          },
         }
-      } else {
-        toast.success('Task moved')
+      )
+    },
+    [patchTask]
+  )
+
+  const cancelTask = useCallback(
+    async (taskId) => {
+      const task = tasksRef.current.find((t) => t.id === taskId)
+      if (!task) return
+
+      // previousStatus is what makes "Restore" possible later.
+      await patchTask(
+        taskId,
+        {
+          cancelled: true,
+          cancelledAt: new Date().toISOString(),
+          previousStatus: task.status,
+          status: 'done',
+          completedAt: null,
+        },
+        {
+          errorMessage: "Couldn't cancel task",
+          onSuccess: () => toast('Task cancelled'),
+        }
+      )
+    },
+    [patchTask]
+  )
+
+  const restoreTask = useCallback(
+    async (taskId) => {
+      const task = tasksRef.current.find((t) => t.id === taskId)
+      if (!task) return
+
+      const status = task.previousStatus || 'todo'
+      await patchTask(
+        taskId,
+        { cancelled: false, cancelledAt: null, previousStatus: null, completedAt: null, status },
+        {
+          errorMessage: "Couldn't restore task",
+          onSuccess: () => toast.success(`Task restored to ${STATUS_LABELS[status]}`),
+        }
+      )
+    },
+    [patchTask]
+  )
+
+  const unarchiveTask = useCallback(
+    (taskId) =>
+      patchTask(
+        taskId,
+        { archived: false, archivedAt: null },
+        {
+          errorMessage: "Couldn't unarchive task",
+          onSuccess: () => toast.success('Task unarchived'),
+        }
+      ),
+    [patchTask]
+  )
+
+  const archiveTask = useCallback(
+    (taskId) =>
+      patchTask(
+        taskId,
+        { archived: true, archivedAt: new Date().toISOString() },
+        {
+          errorMessage: "Couldn't archive task",
+          onSuccess: () =>
+            toast.success('Task archived', {
+              action: { label: 'Undo', onClick: () => unarchiveTask(taskId) },
+            }),
+        }
+      ),
+    [patchTask, unarchiveTask]
+  )
+
+  const deleteTask = useCallback(
+    async (taskId) => {
+      markPending(taskId, true)
+      setActionError(null)
+      try {
+        await deleteTaskRequest(taskId)
+        setTasks((prev) => prev.filter((t) => t.id !== taskId))
+        toast.success('Task deleted')
+      } catch (err) {
+        setActionError(err.message)
+        toast.error(`Couldn't delete task: ${err.message}`)
+      } finally {
+        markPending(taskId, false)
       }
-    } catch (error) {
-      setTasks(previousTasks)
-      setActionError(error.message)
-      toast.error(`Couldn't move task: ${error.message}`)
-    } finally {
-      markPending(taskId, false)
-    }
-  }, [tasks])
+    },
+    [markPending]
+  )
 
-  const deleteTask = useCallback(async (taskId) => {
-    markPending(taskId, true)
-    setActionError(null)
-    try {
-      await deleteTaskRequest(taskId)
-      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId))
-      toast.success('Task deleted')
-    } catch (error) {
-      setActionError(error.message)
-      toast.error(`Couldn't delete task: ${error.message}`)
-      markPending(taskId, false)
-      throw error
-    }
-  }, [])
+  const activeTasks = useMemo(() => tasks.filter((t) => !t.archived), [tasks])
 
-  const tasksByStatus = useMemo(() => {
-    return {
-      todo: tasks.filter((task) => task.status === 'todo'),
-      'in-progress': tasks.filter((task) => task.status === 'in-progress'),
-      done: tasks.filter((task) => task.status === 'done'),
-    }
-  }, [tasks])
+  const archivedTasks = useMemo(
+    () =>
+      tasks
+        .filter((t) => t.archived)
+        .sort((a, b) => new Date(b.archivedAt || 0) - new Date(a.archivedAt || 0)),
+    [tasks]
+  )
+
+  const tasksByStatus = useMemo(
+    () => ({
+      todo: activeTasks.filter((t) => t.status === 'todo'),
+      'in-progress': activeTasks.filter((t) => t.status === 'in-progress'),
+      done: activeTasks.filter((t) => t.status === 'done'),
+    }),
+    [activeTasks]
+  )
 
   return {
     tasks,
     tasksByStatus,
+    archivedTasks,
     loading,
     isAdding,
     pendingTaskIds,
@@ -129,6 +263,10 @@ function useTaskData() {
     actionError,
     addTask,
     moveTask,
+    cancelTask,
+    restoreTask,
+    archiveTask,
+    unarchiveTask,
     deleteTask,
     retry: loadTasks,
   }
